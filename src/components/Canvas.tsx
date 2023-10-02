@@ -1,3 +1,6 @@
+import { RotateRightOutlined } from "@ant-design/icons";
+import { Button } from "antd";
+import type { UploadFile } from "antd/es/upload/interface";
 import { CSSProperties, useContext, useEffect, useState } from "react";
 import { ReactSortable } from "react-sortablejs";
 import ImageContext from "../Context";
@@ -51,6 +54,18 @@ function Canvas() {
     setStyle(style);
   }, [config]);
 
+  const [rotateRightMap, setRotateRightMap] = useState<Record<string, number>>(
+    {},
+  );
+
+  const onRotateRight = (image: UploadFile) => {
+    const rotateRight = rotateRightMap[image.uid] || 0;
+    setRotateRightMap({
+      ...rotateRightMap,
+      [image.uid]: (rotateRight + 1) % 4,
+    });
+  };
+
   return (
     <ReactSortable<any>
       id="canvas"
@@ -60,13 +75,28 @@ function Canvas() {
       style={style}
     >
       {images.map((image) => (
-        <img
-          key={image.uid}
-          className="img"
-          src={image.url}
-          alt=""
-          style={imgStyle}
-        />
+        <div key={image.uid} className="image">
+          <img
+            className="image-img"
+            key={image.uid}
+            src={image.url}
+            alt=""
+            style={{
+              ...imgStyle,
+              transform: `rotate(${(rotateRightMap[image.uid] || 0) * 90}deg)`,
+            }}
+          />
+          <div className="image-mask">
+            <div className="image-mask-info">
+              <Button
+                type="link"
+                icon={<RotateRightOutlined />}
+                size="large"
+                onClick={onRotateRight.bind(null, image)}
+              />
+            </div>
+          </div>
+        </div>
       ))}
     </ReactSortable>
   );
