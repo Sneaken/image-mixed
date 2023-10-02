@@ -1,0 +1,24 @@
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: auto;
+}
+
+.img {
+  box-sizing: border-box;
+  width: 300px;
+  height: 300px;
+
+  &:hover {
+    cursor: grab;
+  }
+}
+
+img {
+  width: 100%;
+  height: 100%;
+}
+
+.sortable-chosen {
+  cursor: grabbing;
+}
