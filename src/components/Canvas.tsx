@@ -22,6 +22,7 @@ function Canvas() {
     } else if (mode === "horizontal") {
       style.display = "flex";
       style.flexWrap = "nowrap";
+      style.width = "max-content";
     } else {
       style.display = "grid";
       style.gridTemplateColumns = `repeat(${
