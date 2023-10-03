@@ -27,14 +27,6 @@ const widthOptions = Array.from({ length: 10 })
     };
   });
 
-const getBase64 = (file: RcFile): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = (error) => reject(error);
-  });
-
 const normFile = (
   e:
     | RcFile[]
@@ -177,11 +169,12 @@ function Config() {
                 const index = fileList.indexOf(file);
                 const newFileList = fileList.slice();
                 newFileList.splice(index, 1);
+                URL.revokeObjectURL(file.url!);
                 form.setFieldValue("images", newFileList);
               }}
-              beforeUpload={async (file: UploadFile) => {
+              beforeUpload={(file: UploadFile) => {
                 if (file.type?.includes("image")) {
-                  file.url = await getBase64(file as RcFile);
+                  file.url = URL.createObjectURL(file as unknown as Blob);
                   const fileList = form.getFieldValue("images");
                   form.setFieldValue("images", [...fileList, file]);
                 }
