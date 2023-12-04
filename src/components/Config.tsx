@@ -86,8 +86,8 @@ function Config() {
       backgroundColor: "transparent",
     });
     const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/jpeg");
-    a.download = `${Date.now()}.jpeg`;
+    a.href = canvas.toDataURL("image/png");
+    a.download = `${Date.now()}.png`;
     a.style.display = "none";
     document.body.appendChild(a);
     a.click();
