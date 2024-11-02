@@ -4,6 +4,8 @@ import { createContext, ReactNode, useState } from "react";
 export type ConfigType = {
   mode: "vertical" | "horizontal" | "multipleColumns";
   spacing: 0 | 1;
+  width: number;
+  height: number;
 } & ({ border: 1; borderWidth: number } | { border: 0; borderWidth?: never }) &
   (
     | { mode: "multipleColumns"; columns: number }
@@ -14,6 +16,8 @@ export const defaultConfig: ConfigType = {
   mode: "vertical",
   spacing: 0,
   border: 0,
+  width: 300,
+  height: 300
 };
 
 interface ImageContextProps {

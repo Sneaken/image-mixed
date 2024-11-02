@@ -12,13 +12,13 @@ function Canvas() {
   const [imgStyle, setImgStyle] = useState({});
 
   useEffect(() => {
-    const { mode, spacing, border } = config;
+    const { mode, spacing, border, width } = config;
     const style: CSSProperties = {};
     if (mode === "vertical") {
       style.display = "flex";
       style.flexDirection = "column";
       style.flexWrap = "nowrap";
-      style.width = "300px";
+      style.width = `${width}px`;
     } else if (mode === "horizontal") {
       style.display = "flex";
       style.flexWrap = "nowrap";
@@ -27,20 +27,20 @@ function Canvas() {
       style.display = "grid";
       style.gridTemplateColumns = `repeat(${
         config.columns || 1
-      }, minmax(300px, 1fr))`;
+      }, minmax(${width}px, 1fr))`;
     }
     if (!spacing) {
       style.fontSize = 0;
       if (mode === "multipleColumns") {
         config.columns = config.columns || 1;
-        style.width = 300 * config.columns;
+        style.width = width * config.columns;
         style.gap = "0";
       }
     } else {
       style.gap = "5px";
       if (mode === "multipleColumns") {
         config.columns = config.columns || 1;
-        style.width = 300 * config.columns + 5 * (config.columns - 1);
+        style.width = width * config.columns + 5 * (config.columns - 1);
       }
     }
 
@@ -76,7 +76,11 @@ function Canvas() {
       style={style}
     >
       {images.map((image) => (
-        <div key={image.uid} className="image">
+        <div
+          key={image.uid}
+          className="image"
+          style={{ width: config.width, height: config.height }}
+        >
           <img
             className="image-img"
             key={image.uid}

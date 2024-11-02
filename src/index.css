@@ -13,8 +13,6 @@ body {
   position: relative;
   display: inline-block;
   box-sizing: border-box;
-  width: 300px;
-  height: 300px;
   flex-shrink: 0;
 }
 .image.sortable-chosen .image-mask:hover {

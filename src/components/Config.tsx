@@ -153,6 +153,20 @@ function Config() {
             <Select options={widthOptions} disabled={border === 0} />
           </Form.Item>
           <Form.Item
+            label="图片宽度"
+            name="width"
+            initialValue={defaultConfig.width}
+          >
+            <InputNumber min={0} precision={0} />
+          </Form.Item>
+          <Form.Item
+            label="图片高度"
+            name="height"
+            initialValue={defaultConfig.height}
+          >
+            <InputNumber min={0} precision={0} />
+          </Form.Item>
+          <Form.Item
             label="已添加"
             name="images"
             valuePropName="fileList"
