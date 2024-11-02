@@ -1,5 +1,11 @@
 import type { UploadFile } from "antd/es/upload/interface";
-import { createContext, ReactNode, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 export type ConfigType = {
   mode: "vertical" | "horizontal" | "multipleColumns";
@@ -17,7 +23,7 @@ export const defaultConfig: ConfigType = {
   spacing: 0,
   border: 0,
   width: 300,
-  height: 300
+  height: 300,
 };
 
 interface ImageContextProps {
@@ -33,11 +39,31 @@ interface Props {
   children: ReactNode;
 }
 
+const STORAGE_CONFIG_KEY = "@image-mixed/config";
+
 export function ImageContextWrapper({ children }: Props) {
   const [config, setConfig] = useState<ConfigType>(defaultConfig);
   const [images, setImages] = useState<UploadFile[]>([]);
+
+  useEffect(() => {
+    const configString = localStorage.getItem(STORAGE_CONFIG_KEY);
+    if (!configString) return;
+    setConfig(JSON.parse(configString));
+  }, []);
+
+  const setConfigToLocal = useCallback(
+    (config: ConfigType & { images?: UploadFile[] }) => {
+      if (config.images) delete config.images;
+      localStorage.setItem(STORAGE_CONFIG_KEY, JSON.stringify(config));
+      setConfig(config);
+    },
+    [],
+  );
+
   return (
-    <ImageContext.Provider value={{ config, setConfig, images, setImages }}>
+    <ImageContext.Provider
+      value={{ config, setConfig: setConfigToLocal, images, setImages }}
+    >
       {children}
     </ImageContext.Provider>
   );

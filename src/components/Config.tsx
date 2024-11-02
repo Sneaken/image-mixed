@@ -15,7 +15,7 @@ import {
 } from "antd";
 import type { RcFile, UploadFile } from "antd/es/upload/interface";
 import html2canvas from "html2canvas";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ImageContext, { ConfigType, defaultConfig } from "../Context";
 
 const widthOptions = Array.from({ length: 10 })
@@ -41,13 +41,20 @@ const normFile = (
 };
 
 function Config() {
-  const { setConfig, setImages } = useContext(ImageContext)!;
+  const { config, setConfig, setImages } = useContext(ImageContext)!;
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
   const border = Form.useWatch("border", form);
 
   const [columns, setColumns] = useState(1);
   const [columnsOpen, setColumnsOpen] = useState(false);
+
+  useEffect(() => {
+    if (config.mode === "multipleColumns" && config.columns !== columns) {
+      // 初始化
+      setColumns(config.columns);
+    }
+  }, [config.columns]);
 
   const handleValuesChange = (
     changedValues: {
@@ -60,6 +67,12 @@ function Config() {
     } else {
       if (values.mode === "multipleColumns") {
         values.columns = columns;
+      }
+      if (!values.width) {
+        values.width = defaultConfig.width;
+      }
+      if (!values.height) {
+        values.width = defaultConfig.width;
       }
       setConfig(values);
     }
@@ -110,12 +123,9 @@ function Config() {
           form={form}
           labelCol={{ span: 6 }}
           onValuesChange={handleValuesChange}
+          initialValues={config}
         >
-          <Form.Item
-            label="合并方式"
-            name="mode"
-            initialValue={defaultConfig.mode}
-          >
+          <Form.Item label="合并方式" name="mode">
             <Radio.Group>
               <Radio value="vertical">纵向</Radio>
               <Radio value="horizontal">水平</Radio>
@@ -129,21 +139,13 @@ function Config() {
               </Radio>
             </Radio.Group>
           </Form.Item>
-          <Form.Item
-            label="图片间距"
-            name="spacing"
-            initialValue={defaultConfig.spacing}
-          >
+          <Form.Item label="图片间距" name="spacing">
             <Radio.Group>
               <Radio value={0}>无间距</Radio>
               <Radio value={1}>有间距</Radio>
             </Radio.Group>
           </Form.Item>
-          <Form.Item
-            label="图片边框"
-            name="border"
-            initialValue={defaultConfig.border}
-          >
+          <Form.Item label="图片边框" name="border">
             <Radio.Group>
               <Radio value={0}>无边框</Radio>
               <Radio value={1}>有边框</Radio>
@@ -152,19 +154,11 @@ function Config() {
           <Form.Item label="边框宽度" name="borderWidth">
             <Select options={widthOptions} disabled={border === 0} />
           </Form.Item>
-          <Form.Item
-            label="图片宽度"
-            name="width"
-            initialValue={defaultConfig.width}
-          >
-            <InputNumber min={0} precision={0} />
+          <Form.Item label="图片宽度" name="width">
+            <InputNumber min={1} precision={0} />
           </Form.Item>
-          <Form.Item
-            label="图片高度"
-            name="height"
-            initialValue={defaultConfig.height}
-          >
-            <InputNumber min={0} precision={0} />
+          <Form.Item label="图片高度" name="height">
+            <InputNumber min={1} precision={0} />
           </Form.Item>
           <Form.Item
             label="已添加"
