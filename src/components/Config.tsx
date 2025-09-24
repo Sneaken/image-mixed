@@ -20,7 +20,6 @@ import {
   UploadProps,
 } from "antd";
 import type { RcFile, UploadFile } from "antd/es/upload/interface";
-import copy from "copy-to-clipboard";
 import html2canvas from "html2canvas";
 import JSZip from "jszip";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -296,6 +295,7 @@ function Config() {
                 zip.file(filename, arrayBuffer);
                 lines.push(filename);
               }
+              zip.file("发票详情.txt", new Blob([lines.join("\n")], { type: 'text/plain;charset=utf-8' }))
               // 生成 ZIP Blob
               const content = await zip.generateAsync({ type: "blob" });
               // 创建下载链接
@@ -305,11 +305,6 @@ function Config() {
               a.click();
               // 释放 URL 对象
               URL.revokeObjectURL(a.href);
-              copy(lines.join("\n"), {
-                onCopy: () => {
-                  message.success("已将文件列表复制到剪贴板中");
-                },
-              });
             },
           });
         }}
