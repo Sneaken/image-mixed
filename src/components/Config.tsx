@@ -1,5 +1,7 @@
 import {
   DownloadOutlined,
+  FilePdfOutlined,
+  InboxOutlined,
   PlusOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
@@ -7,16 +9,23 @@ import {
   Drawer,
   FloatButton,
   Form,
+  Input,
   InputNumber,
+  InputRef,
+  message,
   Modal,
   Radio,
   Select,
   Upload,
+  UploadProps,
 } from "antd";
 import type { RcFile, UploadFile } from "antd/es/upload/interface";
+import copy from "copy-to-clipboard";
 import html2canvas from "html2canvas";
-import { useContext, useEffect, useState } from "react";
+import JSZip from "jszip";
+import { useContext, useEffect, useRef, useState } from "react";
 import ImageContext, { ConfigType, defaultConfig } from "../Context";
+import { parseInvoicePDF } from "../utils.ts";
 
 const widthOptions = Array.from({ length: 10 })
   .fill(null)
@@ -107,11 +116,32 @@ function Config() {
     document.body.removeChild(a);
   };
 
+  const [renameOpen, setRenameOpen] = useState(false);
+
+  const [pdfs, setPdfs] = useState<any[]>([]);
+
+  const props: UploadProps = {
+    fileList: pdfs,
+    multiple: true,
+    beforeUpload: () => {
+      return false;
+    },
+    onChange(info) {
+      setPdfs(info.fileList);
+    },
+  };
+
+  const inputRef = useRef<InputRef | null>(null);
+
   return (
     <>
       <FloatButton.Group shape="square">
         <FloatButton icon={<SettingOutlined />} onClick={() => setOpen(true)} />
         <FloatButton icon={<DownloadOutlined />} onClick={handleDownload} />
+        <FloatButton
+          icon={<FilePdfOutlined />}
+          onClick={() => setRenameOpen(true)}
+        />
       </FloatButton.Group>
       <Drawer
         title="合并选项"
@@ -230,6 +260,68 @@ function Config() {
           style={{ width: "100%" }}
           onChange={(number) => setColumns(number!)}
         />
+      </Modal>
+      <Modal
+        title="发票重命名"
+        open={renameOpen}
+        centered
+        onCancel={() => {
+          setRenameOpen(false);
+          setPdfs([]);
+        }}
+        onOk={() => {
+          if (!pdfs.length) {
+            message.error("请憨批先上传发票");
+            return;
+          }
+          Modal.confirm({
+            title: "报销人姓名填写",
+            centered: true,
+            content: <Input ref={inputRef} />,
+            onOk: async () => {
+              const name = inputRef.current?.input?.value?.trim?.() || "";
+              if (!name) {
+                message.error("憨批先填写姓名");
+                return Promise.reject();
+              }
+              const lines = [];
+              const zip = new JSZip();
+              // 遍历文件加入 ZIP
+              for (const file of pdfs) {
+                const arrayBuffer = await file.originFileObj.arrayBuffer();
+                const { date, money, code } = await parseInvoicePDF(
+                  file.originFileObj,
+                );
+                const filename = `${name}+${code}+${money}+${date}.pdf`;
+                zip.file(filename, arrayBuffer);
+                lines.push(filename);
+              }
+              // 生成 ZIP Blob
+              const content = await zip.generateAsync({ type: "blob" });
+              // 创建下载链接
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(content);
+              a.download = `${name}-${Date.now()}-导出的发票.zip`;
+              a.click();
+              // 释放 URL 对象
+              URL.revokeObjectURL(a.href);
+              copy(lines.join("\n"), {
+                onCopy: () => {
+                  message.success("已将文件列表复制到剪贴板中");
+                },
+              });
+            },
+          });
+        }}
+        bodyStyle={{ maxHeight: "70vh", overflow: "auto" }}
+      >
+        <Upload.Dragger {...props}>
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">点击或拖动文件到此区域进行上传</p>
+          <p className="ant-upload-hint">支持单个或批量上传。</p>
+        </Upload.Dragger>
       </Modal>
     </>
   );
