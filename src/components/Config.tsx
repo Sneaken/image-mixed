@@ -6,6 +6,7 @@ import {
   SettingOutlined,
 } from "@ant-design/icons";
 import {
+  Button,
   Drawer,
   FloatButton,
   Form,
@@ -52,6 +53,8 @@ function Config() {
   const { config, setConfig, setImages } = useContext(ImageContext)!;
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
+
+  const images = Form.useWatch("images", form);
   const border = Form.useWatch("border", form);
 
   const [columns, setColumns] = useState(1);
@@ -120,6 +123,7 @@ function Config() {
   const [pdfs, setPdfs] = useState<any[]>([]);
 
   const props: UploadProps = {
+    accept: "*.pdf",
     fileList: pdfs,
     multiple: true,
     beforeUpload: () => {
@@ -224,7 +228,59 @@ function Config() {
               </div>
             </Upload>
           </Form.Item>
+          {images?.length > 0 && (
+            <Form.Item label="OCR 服务地址" name="ocrServiceUrl">
+              <Input />
+            </Form.Item>
+          )}
         </Form>
+        {images?.length > 0 && (
+          <div style={{ textAlign: "center" }}>
+            <Button
+              onClick={() => {
+                const body = new FormData();
+                images.forEach((f: any) => {
+                  body.append("files", f.originFileObj);
+                });
+
+                fetch(form.getFieldValue("ocrServiceUrl") || defaultConfig.ocrServiceUrl, {
+                  method: "POST",
+                  body,
+                })
+                  .then(async (res) => {
+                    if (res.status === 500) {
+                      message.error("OCR 服务部分图片未识别成功");
+                      return;
+                    }
+
+                    const blob = await res.blob();
+                    const disposition = res.headers.get("Content-Disposition");
+                    let filename = "repaired.zip";
+                    const asciiMatch =
+                      disposition && disposition.match(/filename="?([^"]+)"?/);
+                    if (asciiMatch)
+                      filename = decodeURIComponent(asciiMatch[1]);
+
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                  })
+                  .catch((err) => {
+                    if (err.message === "Failed to fetch") {
+                      message.error("OCR 服务未启动");
+                    }
+                  });
+              }}
+            >
+              导出消费记录
+            </Button>
+          </div>
+        )}
       </Drawer>
       <Modal
         open={previewOpen}
@@ -295,7 +351,12 @@ function Config() {
                 zip.file(filename, arrayBuffer);
                 lines.push(filename);
               }
-              zip.file("发票详情.txt", new Blob([lines.join("\n")], { type: 'text/plain;charset=utf-8' }))
+              zip.file(
+                "发票详情.txt",
+                new Blob([lines.join("\n")], {
+                  type: "text/plain;charset=utf-8",
+                }),
+              );
               // 生成 ZIP Blob
               const content = await zip.generateAsync({ type: "blob" });
               // 创建下载链接

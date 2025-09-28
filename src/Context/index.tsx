@@ -6,6 +6,7 @@ export type ConfigType = {
   spacing: 0 | 1;
   width: number;
   height: number;
+  ocrServiceUrl: string;
 } & ({ border: 1; borderWidth: number } | { border: 0; borderWidth?: never }) &
   (
     | { mode: "multipleColumns"; columns: number }
@@ -18,6 +19,7 @@ export const defaultConfig: ConfigType = {
   border: 0,
   width: 300,
   height: 300,
+  ocrServiceUrl: "http://10.1.1.111:3080/api/ocr",
 };
 
 interface ImageContextProps {
