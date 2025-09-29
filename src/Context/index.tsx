@@ -19,7 +19,7 @@ export const defaultConfig: ConfigType = {
   border: 0,
   width: 300,
   height: 300,
-  ocrServiceUrl: "http://10.1.1.111:3080/api/ocr",
+  ocrServiceUrl: "https://10.1.1.111:3080/api/ocr",
 };
 
 interface ImageContextProps {
