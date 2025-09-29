@@ -17,6 +17,8 @@ import {
   Modal,
   Radio,
   Select,
+  Tour,
+  TourProps,
   Upload,
   UploadProps,
 } from "antd";
@@ -49,6 +51,9 @@ const normFile = (
   return e?.fileList;
 };
 
+const TourKey = "@image-mixed/tour-v1";
+const NameKey = "@image-mixed/name";
+
 function Config() {
   const { config, setConfig, setImages } = useContext(ImageContext)!;
   const [open, setOpen] = useState(false);
@@ -59,6 +64,32 @@ function Config() {
 
   const [columns, setColumns] = useState(1);
   const [columnsOpen, setColumnsOpen] = useState(false);
+
+  const [tourOpen, setTourOpen] = useState(
+    () => !localStorage.getItem(TourKey),
+  );
+  const ref1 = useRef(null);
+  const ref2 = useRef(null);
+  const ref3 = useRef(null);
+
+  const steps: TourProps["steps"] = [
+    {
+      title: "上传消费记录",
+      description:
+        "上传完消费记录后可以选择解析并导出消费记录（图片会重命名，压缩包里有消费记录总结）",
+      target: () => ref1.current,
+    },
+    {
+      title: "下载消费合集",
+      description: "下载合成的消费记录",
+      target: () => ref2.current,
+    },
+    {
+      title: "发票重命名",
+      description: "发票重命名并且压缩包里有发票详情",
+      target: () => ref3.current,
+    },
+  ];
 
   useEffect(() => {
     if (config.mode === "multipleColumns" && config.columns !== columns) {
@@ -141,9 +172,18 @@ function Config() {
   return (
     <>
       <FloatButton.Group shape="square">
-        <FloatButton icon={<SettingOutlined />} onClick={() => setOpen(true)} />
-        <FloatButton icon={<DownloadOutlined />} onClick={handleDownload} />
         <FloatButton
+          icon={<SettingOutlined />}
+          onClick={() => setOpen(true)}
+          ref={ref1}
+        />
+        <FloatButton
+          icon={<DownloadOutlined />}
+          onClick={handleDownload}
+          ref={ref2}
+        />
+        <FloatButton
+          ref={ref3}
           icon={<FilePdfOutlined />}
           onClick={() => setRenameOpen(true)}
         />
@@ -280,7 +320,13 @@ function Config() {
                     URL.revokeObjectURL(url);
                   })
                   .catch((err) => {
-                    if (["Failed to fetch", "Network request failed", "Load failed"].includes(err.message)) {
+                    if (
+                      [
+                        "Failed to fetch",
+                        "Network request failed",
+                        "Load failed",
+                      ].includes(err.message)
+                    ) {
                       message.error("OCR 服务未启动");
                     } else {
                       message.error(err.message);
@@ -346,13 +392,19 @@ function Config() {
           Modal.confirm({
             title: "报销人姓名填写",
             centered: true,
-            content: <Input ref={inputRef} />,
+            content: (
+              <Input
+                ref={inputRef}
+                defaultValue={localStorage.getItem(NameKey) || ""}
+              />
+            ),
             onOk: async () => {
               const name = inputRef.current?.input?.value?.trim?.() || "";
               if (!name) {
                 message.error("憨批先填写姓名");
                 return Promise.reject();
               }
+              localStorage.setItem(NameKey, name);
               const lines = [];
               const zip = new JSZip();
               // 遍历文件加入 ZIP
@@ -393,6 +445,14 @@ function Config() {
           <p className="ant-upload-hint">支持单个或批量上传。</p>
         </Upload.Dragger>
       </Modal>
+      <Tour
+        open={tourOpen}
+        onClose={() => {
+          localStorage.setItem(TourKey, "1");
+          setTourOpen(false);
+        }}
+        steps={steps}
+      />
     </>
   );
 }
