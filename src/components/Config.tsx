@@ -93,6 +93,8 @@ function Config() {
   const [previewImage, setPreviewImage] = useState("");
   const [previewTitle, setPreviewTitle] = useState("");
 
+  const [exportLoading, setExportLoading] = useState(false);
+
   const handlePreview = async (file: UploadFile) => {
     setPreviewImage(file.url!);
     setPreviewOpen(true);
@@ -237,16 +239,23 @@ function Config() {
         {images?.length > 0 && (
           <div style={{ textAlign: "center" }}>
             <Button
+              loading={exportLoading}
               onClick={() => {
                 const body = new FormData();
                 images.forEach((f: any) => {
                   body.append("files", f.originFileObj);
                 });
 
-                fetch(form.getFieldValue("ocrServiceUrl") || defaultConfig.ocrServiceUrl, {
-                  method: "POST",
-                  body,
-                })
+                setExportLoading(true);
+
+                fetch(
+                  form.getFieldValue("ocrServiceUrl") ||
+                    defaultConfig.ocrServiceUrl,
+                  {
+                    method: "POST",
+                    body,
+                  },
+                )
                   .then(async (res) => {
                     if (res.status === 500) {
                       message.error("OCR 服务部分图片未识别成功");
@@ -271,9 +280,14 @@ function Config() {
                     URL.revokeObjectURL(url);
                   })
                   .catch((err) => {
-                    if (err.message === "Failed to fetch") {
+                    if (["Failed to fetch", "Network request failed", "Load failed"].includes(err.message)) {
                       message.error("OCR 服务未启动");
+                    } else {
+                      message.error(err.message);
                     }
+                  })
+                  .finally(() => {
+                    setExportLoading(false);
                   });
               }}
             >
