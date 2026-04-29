@@ -138,8 +138,7 @@ function Config() {
   const handleDownload = async () => {
     const el = document.getElementById("canvas")!;
     const canvas = await html2canvas(el, {
-      width: el.clientWidth,
-      height: el.clientHeight,
+      scale: window.devicePixelRatio * 2,
       backgroundColor: "transparent",
     });
     const a = document.createElement("a");
