@@ -269,11 +269,6 @@ function Config() {
               </div>
             </Upload>
           </Form.Item>
-          {images?.length > 0 && (
-            <Form.Item label="OCR 服务地址" name="ocrServiceUrl">
-              <Input />
-            </Form.Item>
-          )}
         </Form>
         {images?.length > 0 && (
           <div style={{ textAlign: "center" }}>
@@ -287,14 +282,10 @@ function Config() {
 
                 setExportLoading(true);
 
-                fetch(
-                  form.getFieldValue("ocrServiceUrl") ||
-                    defaultConfig.ocrServiceUrl,
-                  {
-                    method: "POST",
-                    body,
-                  },
-                )
+                fetch(defaultConfig.ocrServiceUrl, {
+                  method: "POST",
+                  body,
+                })
                   .then(async (res) => {
                     if (res.status === 500) {
                       message.error("OCR 服务部分图片未识别成功");
